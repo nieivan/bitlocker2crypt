@@ -9,7 +9,7 @@
 #>
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$crypt_url = 'https://crypt.yourdomain.nil/checkin/'
+$crypt_url = 'http://10.95.55.114:8000/checkin/'
 
 $serial = (Get-CimInstance Win32_ComputerSystemProduct).IdentifyingNumber
 
@@ -17,17 +17,22 @@ $username = (& "$PSScriptRoot\Get-LoggedOnUser.ps1" -ComputerName $env:COMPUTERN
 
 $macname = $env:COMPUTERNAME
 
+$FixedDrives = Get-WmiObject win32_diskdrive | Where-Object{$_.mediatype -eq "Fixed hard disk media"} | ForEach-Object{Get-WmiObject -Query "ASSOCIATORS OF {Win32_DiskDrive.DeviceID=`"$($_.DeviceID.replace('\','\\'))`"} WHERE AssocClass = Win32_DiskDriveToDiskPartition"} |  ForEach-Object{Get-WmiObject -Query "ASSOCIATORS OF {Win32_DiskPartition.DeviceID=`"$($_.DeviceID)`"} WHERE AssocClass = Win32_LogicalDiskToPartition"} | ForEach-Object{$_.deviceid}
+
 
 $bitLocker = Get-WmiObject `
                -Namespace "Root\cimv2\Security\MicrosoftVolumeEncryption" `
                -Class "Win32_EncryptableVolume" `
-               -Filter "DriveLetter = '$env:SystemDrive'"
+               #-Filter "DriveLetter = '$env:SystemDrive'"
 
 $protector_id = $bitLocker.GetKeyProtectors("0").volumekeyprotectorID
 
-Foreach ($item in $protector_id) {
-  $data = manage-bde -protectors -get $env:SystemDrive -id $item
-  $key = ($data | Select-String -Pattern 'Password:' -Context 0,1 | % {$_.Context.PostContext})
+Foreach ($FixedDrive in $FixedDrives){
+
+  Foreach ($item in $protector_id) {
+  $data = manage-bde -protectors -get $FixedDrive -id $item
+  $key = ($data | Select-String -Pattern 'Password:' -Context 0,1 | ForEach-Object {$_.Context.PostContext})
+  
   if ($null -eq $key) {
     continue
   } else {
@@ -41,6 +46,8 @@ Foreach ($item in $protector_id) {
         -Body $postData `
         -ContentType application/x-www-form-urlencoded `
         -Verbose
+      }
     }
   }
+
 }
