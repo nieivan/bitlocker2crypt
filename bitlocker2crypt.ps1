@@ -11,7 +11,7 @@
 #>
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$crypt_url = 'http://10.95.55.114:8000/checkin/'
+$crypt_url = 'https://rkvault.bytedance.net/checkin/'
 
 $serial = (Get-CimInstance Win32_ComputerSystemProduct).IdentifyingNumber
 
