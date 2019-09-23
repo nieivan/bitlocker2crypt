@@ -32,14 +32,13 @@ Foreach ($FixedDrive in $FixedDrives){
 
   Foreach ($item in $protector_id) {
   $data = manage-bde -protectors -get $FixedDrive -id $item
-  $key = ($data | Select-String -Pattern 'Password:' -Context 0,1 | ForEach-Object {$_.Context.PostContext})
+  $key = ($data | Select-String -Pattern '(?:\d{6}-){7}\d{6}')
 
   if ($null -eq $key) {
     continue
   } else {
-    $rec_key = $key[1] -replace ' ',''
-    $postData = "recovery_password=$rec_key&serial=$serial&username=$username&macname=$macname"
-    if ($rec_key.length -eq 55) {
+    $postData = "recovery_password=$key&serial=$serial&username=$username&macname=$macname"
+    if ($key.length -eq 55) {
       curl `
         -UseBasicParsing `
         -Uri $crypt_url `
