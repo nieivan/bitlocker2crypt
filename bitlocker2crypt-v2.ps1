@@ -86,7 +86,7 @@ Will display the session information on server01 and server02
 	===========================================================================
     Created by:   	Johnny Ramos
     Revised by:     Ivan Nie
-	Filename:     	bitlocker2crypt.ps1
+	Filename:     	bitlocker2crypt-v2.ps1
 	===========================================================================
 	.DESCRIPTION
     Method to escrow a Windows Bitlocker key to Crypt-Server.
